@@ -53,7 +53,15 @@
           <button @click="doTranslate(item)" :disabled="translating === item.id">
             🌐 {{ item.translated_summary ? '重新翻译' : '翻译' }}
           </button>
+          <button @click="doTTS(item)" :disabled="ttsLoading === item.id" :class="{ playing: playingAudio === item.id }">
+            🔊 {{ playingAudio === item.id ? '播放中' : (item.tts_url ? '朗读' : '生成语音') }}
+          </button>
           <a :href="item.link" target="_blank">🔗 阅读原文</a>
+        </div>
+        
+        <!-- TTS音频播放器 -->
+        <div v-if="item.tts_url" class="tts-player">
+          <audio :src="item.tts_url" controls @play="playingAudio = item.id" @pause="playingAudio = null" @ended="playingAudio = null"></audio>
         </div>
         
         <!-- AI结果展示 -->
@@ -79,7 +87,13 @@
           <div class="modal-meta">
             <span>{{ selectedItem.author }}</span>
             <span>{{ formatDate(selectedItem.published) }}</span>
+            <button @click="doTTS(selectedItem)" :disabled="ttsLoading === selectedItem.id" class="modal-tts-btn">
+              🔊 {{ selectedItem.tts_url ? '朗读' : '生成语音' }}
+            </button>
             <a :href="selectedItem.link" target="_blank">阅读原文 →</a>
+          </div>
+          <div v-if="selectedItem.tts_url" class="tts-player-modal">
+            <audio :src="selectedItem.tts_url" controls style="width:100%"></audio>
           </div>
           <div class="content-body" v-html="selectedItem.content || selectedItem.summary"></div>
         </div>
@@ -91,7 +105,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAppStore } from '../stores'
-import { markRead as apiMarkRead, toggleStar as apiToggleStar, summarize as apiSummarize, translate as apiTranslate, fetchAllFeeds } from '../api'
+import { markRead as apiMarkRead, toggleStar as apiToggleStar, summarize as apiSummarize, translate as apiTranslate, fetchAllFeeds, generateTTS as apiGenerateTTS } from '../api'
 
 const store = useAppStore()
 const searchQuery = ref('')
@@ -99,6 +113,8 @@ const currentFeed = ref('')
 const refreshing = ref(false)
 const summarizing = ref(null)
 const translating = ref(null)
+const ttsLoading = ref(null)
+const playingAudio = ref(null)
 const selectedItem = ref(null)
 let searchTimer = null
 
@@ -158,6 +174,27 @@ async function doSummary(item) {
     alert('总结失败: ' + e.message)
   }
   summarizing.value = null
+}
+
+async function doTTS(item) {
+  if (item.tts_url) {
+    // 已有音频，直接播放
+    const audio = document.querySelector(`audio[src="${item.tts_url}"]`)
+    if (audio) {
+      audio.play()
+    }
+    return
+  }
+  
+  ttsLoading.value = item.id
+  const text = item.content || item.summary || item.title
+  try {
+    const res = await apiGenerateTTS({ text })
+    item.tts_url = res.data.audio_url
+  } catch (e) {
+    alert('语音生成失败: ' + e.message)
+  }
+  ttsLoading.value = null
 }
 
 async function doTranslate(item) {
@@ -224,6 +261,19 @@ async function doTranslate(item) {
 .modal-meta a:hover { background: #e94560; color: white; }
 .content-body { line-height: 1.8; font-size: 14px; }
 .content-body img { max-width: 100%; height: auto; }
+
+/* TTS播放器 */
+.tts-player { margin-top: 10px; padding: 8px 12px; background: #f8f9fa; border-radius: 8px; }
+.tts-player audio { width: 100%; height: 36px; }
+.tts-player-modal { margin: 12px 0; padding: 10px; background: #f0f7ff; border-radius: 8px; }
+.modal-tts-btn { background: #1a1a2e; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+.modal-tts-btn:hover { background: #e94560; }
+.modal-tts-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.card-footer button.playing { background: #1a1a2e; color: white; border-color: #1a1a2e; animation: pulse 1.5s infinite; }
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
 
 @media (max-width: 640px) {
   .toolbar { flex-direction: column; }

@@ -29,6 +29,9 @@ export const translate = (data) => api.post('/translate/', data)
 export const getSettings = () => api.get('/settings/')
 export const saveSettings = (data) => api.post('/settings/', data)
 
+// TTS
+export const generateTTS = (data) => api.post('/tts/', data)
+
 // Discover
 export const searchPodcast = (query) => api.get('/discover/podcast', { params: { query } })
 export const searchWechat = (query) => api.get('/discover/wechat', { params: { query } })
