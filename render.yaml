@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: content-aggregator
+    runtime: python
+    plan: free
+    buildCommand: |
+      cd backend && pip install -r requirements.txt
+    startCommand: |
+      cd backend && python run.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12
+      - key: PORT
+        value: 8000
+    # 注意：免费版Render的文件系统不持久化，SQLite数据在服务休眠后会丢失。
+    # 如需持久化数据，请升级Render Disk或迁移到PostgreSQL。

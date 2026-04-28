@@ -1,0 +1,15 @@
+[build]
+builder = "nixpacks"
+
+[phases.build]
+cmds = ["cd backend && pip install -r requirements.txt"]
+
+[phases.setup]
+nixPkgs = ["python312"]
+
+[start]
+cmds = ["cd backend && python run.py"]
+
+# Railway 使用 Nixpacks 构建，Python 环境自动配置
+# 注意：免费版容器重启后 SQLite 数据可能丢失
+# 生产环境建议迁移到 PostgreSQL
