@@ -170,8 +170,7 @@ async function loadPickArticles(date) {
 }
 
 function getFeedName(feedId) {
-  const feed = store.feeds.find(f => f.id === feedId)
-  return feed?.name || '未知'
+  return store.feedNameMap[feedId] || '未知'
 }
 
 function formatDate(date) {
