@@ -1,9 +1,16 @@
 import axios from 'axios'
 
+// 支持 Vercel/独立部署：通过环境变量配置后端API地址
+// 本地或同源部署：使用相对路径 /api
+// Vercel部署：在Vercel Dashboard → Project Settings → Environment Variables 添加 VITE_API_BASE_URL
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api'
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE,
   timeout: 120000  // RAG需要更长超时（AI生成可能较慢）
 })
+
+console.log('[API] baseURL:', API_BASE)
 
 // RAG
 export const ragSearch = (data) => api.post('/rag/search', data)
