@@ -39,7 +39,10 @@ if static_dir.exists():
 
     @app.get("/")
     def serve_index():
-        return FileResponse(static_dir / "index.html")
+        return FileResponse(
+            static_dir / "index.html",
+            headers={"Cache-Control": "no-cache, no-store, must-revalidate"}
+        )
 
     # SPA fallback - 所有非API路由返回index.html
     @app.get("/{full_path:path}")
@@ -48,8 +51,14 @@ if static_dir.exists():
             return {"detail": "Not Found"}
         file_path = static_dir / full_path
         if file_path.exists() and file_path.is_file():
-            return FileResponse(file_path)
-        return FileResponse(static_dir / "index.html")
+            return FileResponse(
+                file_path,
+                headers={"Cache-Control": "no-cache, no-store, must-revalidate"}
+            )
+        return FileResponse(
+            static_dir / "index.html",
+            headers={"Cache-Control": "no-cache, no-store, must-revalidate"}
+        )
 else:
     @app.get("/")
     def root():

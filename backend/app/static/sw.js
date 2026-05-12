@@ -26,13 +26,27 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// 拦截请求：缓存优先静态资源，网络优先API
+// 拦截请求
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
   // API请求：网络优先，失败时返回缓存
   if (url.pathname.startsWith('/api/')) {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
+          return response;
+        })
+        .catch(() => caches.match(request))
+    );
+    return;
+  }
+
+  // 前端构建产物 (JS/CSS)：网络优先，确保拿到最新版本
+  if (url.pathname.startsWith('/assets/')) {
     event.respondWith(
       fetch(request)
         .then(response => {
