@@ -154,9 +154,9 @@ def list_contents(
                 extra_where = f"AND {' AND '.join(conditions)}" if conditions else ""
                 query = f"""
                     SELECT c.id, c.feed_id, c.title, c.link, c.author, c.published,
-                           c.summary, c.ai_summary, c.ai_summary_short, c.ai_summary_long,
+                           c.summary, c.content, c.ai_summary, c.ai_summary_short, c.ai_summary_long,
                            c.translated_title, c.translated_summary, c.language,
-                           c.is_read, c.is_starred, c.tags, c.read_progress, c.audio_url
+                           c.is_read, c.is_starred, c.tags, c.read_progress, c.fetched_at, c.audio_url, c.media_type
                     FROM contents c
                     WHERE c.id IN ({placeholders}) {extra_where}
                     ORDER BY c.published DESC LIMIT ? OFFSET ?
@@ -171,7 +171,7 @@ def list_contents(
                     f"""SELECT c.id, c.feed_id, c.title, c.link, c.author, c.published,
                             c.summary, c.ai_summary, c.ai_summary_short, c.ai_summary_long,
                             c.translated_title, c.translated_summary, c.language,
-                            c.is_read, c.is_starred, c.tags, c.read_progress, c.audio_url
+                            c.is_read, c.is_starred, c.tags, c.read_progress, c.fetched_at, c.audio_url, c.media_type
                         FROM contents c {where_clause} ORDER BY c.published DESC LIMIT ? OFFSET ?""",
                     params + [page_size, (page - 1) * page_size]
                 )
@@ -184,7 +184,7 @@ def list_contents(
                 f"""SELECT c.id, c.feed_id, c.title, c.link, c.author, c.published,
                         c.summary, c.ai_summary, c.ai_summary_short, c.ai_summary_long,
                         c.translated_title, c.translated_summary, c.language,
-                        c.is_read, c.is_starred, c.tags, c.read_progress, c.audio_url
+                        c.is_read, c.is_starred, c.tags, c.read_progress, c.fetched_at, c.audio_url, c.media_type
                     FROM contents c {where_clause} ORDER BY c.published DESC LIMIT ? OFFSET ?""",
                 params + [page_size, (page - 1) * page_size]
             )
@@ -193,7 +193,7 @@ def list_contents(
             f"""SELECT c.id, c.feed_id, c.title, c.link, c.author, c.published,
                     c.summary, c.ai_summary, c.ai_summary_short, c.ai_summary_long,
                     c.translated_title, c.translated_summary, c.language,
-                    c.is_read, c.is_starred, c.tags, c.read_progress, c.audio_url
+                    c.is_read, c.is_starred, c.tags, c.read_progress, c.fetched_at, c.audio_url, c.media_type
                 FROM contents c {where_clause} ORDER BY c.published DESC LIMIT ? OFFSET ?""",
             params + [page_size, (page - 1) * page_size]
         )

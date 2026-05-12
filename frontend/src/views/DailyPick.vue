@@ -1,9 +1,9 @@
 <template>
   <div class="daily-pick-page">
     <div class="header">
-      <h2>🏆 每日精选</h2>
+      <h2>每日精选</h2>
       <button class="btn btn-primary" @click="doGenerate" :disabled="generating">
-        {{ generating ? '🔄 生成中...' : '✨ 生成今日精选' }}
+        {{ generating ? '🔄 生成中...' : '生成今日精选' }}
       </button>
     </div>
 
@@ -58,7 +58,7 @@
 
     <!-- 历史精选 -->
     <div class="history-section">
-      <h3>📅 历史精选</h3>
+      <h3>历史精选</h3>
       <div v-if="loading" class="loading">加载中...</div>
       <div v-else-if="history.length === 0" class="empty">暂无历史精选</div>
       <div v-else class="history-list">

@@ -1,21 +1,21 @@
 <template>
   <div class="rag-page">
     <div class="rag-header">
-      <h2>🤖 AI 知识库问答</h2>
+      <h2>AI AI 知识库问答</h2>
       <p class="rag-desc">基于你的 {{ store.stats.total }} 篇订阅文章，智能回答问题</p>
     </div>
 
     <!-- 问答输入区 -->
     <div class="chat-box">
       <div v-for="(msg, idx) in messages" :key="idx" class="message" :class="msg.role">
-        <div class="msg-avatar">{{ msg.role === 'user' ? '🧑‍💻' : '🤖' }}</div>
+        <div class="msg-avatar">{{ msg.role === 'user' ? '我' : 'AI' }}</div>
         <div class="msg-content">
           <div v-if="msg.role === 'user'" class="user-text">{{ msg.content }}</div>
           <div v-else>
             <div class="ai-answer" v-html="formatAnswer(msg.content)"></div>
             <!-- 引用来源 -->
             <div v-if="msg.sources?.length" class="sources">
-              <div class="sources-title">📚 参考文章</div>
+              <div class="sources-title">参考文章</div>
               <div v-for="s in msg.sources" :key="s.id" class="source-item">
                 <a :href="s.link" target="_blank" class="source-link">
                   <span class="source-num">[{{ s.id }}]</span>
@@ -32,7 +32,7 @@
 
       <!-- 加载中 -->
       <div v-if="loading" class="message assistant">
-        <div class="msg-avatar">🤖</div>
+        <div class="msg-avatar">AI</div>
         <div class="msg-content">
           <div class="typing">正在检索文章并生成回答<span class="dots">...</span></div>
         </div>
@@ -55,7 +55,7 @@
 
     <!-- 快捷问题 -->
     <div v-if="messages.length === 0" class="quick-questions">
-      <div class="quick-title">💡 试试这些问题</div>
+      <div class="quick-title">试试这些问题</div>
       <div class="quick-tags">
         <button v-for="q in quickQuestions" :key="q" @click="quickAsk(q)" class="quick-tag">
           {{ q }}

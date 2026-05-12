@@ -3,7 +3,7 @@
     <!-- 左侧：订阅来源目录 -->
     <aside class="feed-sidebar" v-if="store.feedStats.length">
       <div class="sidebar-header">
-        <h4>📡 订阅来源</h4>
+        <h4>订阅来源</h4>
         <button class="sidebar-toggle" @click="sidebarCollapsed = !sidebarCollapsed">
           {{ sidebarCollapsed ? '▶' : '◀' }}
         </button>
@@ -15,7 +15,7 @@
           :class="{ active: !store.currentFeed }"
           @click="store.setFeedFilter(null)"
         >
-          <span class="source-name">📁 全部来源</span>
+          <span class="source-name">全部来源</span>
           <span class="source-counts">
             <span class="count-total">{{ store.stats.total }}</span>
             <span v-if="store.stats.unread" class="count-unread">{{ store.stats.unread }}</span>
@@ -84,17 +84,17 @@
         </select>
         <select v-model="dateFilter" @change="store.setDateRange(dateFilter)">
           <option value="">全部时间</option>
-          <option value="today">📅 今天</option>
-          <option value="week">📅 最近7天</option>
-          <option value="month">📅 最近30天</option>
+          <option value="today">今天</option>
+          <option value="week">最近7天</option>
+          <option value="month">最近30天</option>
         </select>
         <button @click="store.filterStarred = store.filterStarred === null ? true : null; store.loadContents()" 
                 :class="{ active: store.filterStarred }">⭐</button>
         <button @click="store.filterRead = store.filterRead === null ? false : null; store.loadContents()" 
                 :class="{ active: store.filterRead === false }">📖 未读</button>
-        <button @click="clearFilters" title="清除所有过滤">🧹</button>
+        <button @click="clearFilters" title="清除所有过滤">清除</button>
         <button @click="refresh" :disabled="refreshing" class="refresh-btn">
-          {{ refreshing ? '🔄 抓取中...' : '🔄 全部抓取' }}
+          {{ refreshing ? '抓取中...' : '全部抓取' }}
         </button>
       </div>
     </div>
