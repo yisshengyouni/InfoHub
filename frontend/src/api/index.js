@@ -21,6 +21,7 @@ export const exportOPML = () => api.get('/feeds/export-opml')
 
 // Contents
 export const getContents = (params) => api.get('/contents/', { params })
+export const getInitData = (params) => api.get('/contents/init-data', { params })
 export const getContent = (id) => api.get(`/contents/${id}`)
 export const markRead = (id, progress) => api.patch(`/contents/${id}/read`, { progress })
 export const toggleStar = (id) => api.patch(`/contents/${id}/star`)

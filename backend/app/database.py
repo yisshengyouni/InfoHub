@@ -54,6 +54,25 @@ def init_db():
         )
     ''')
 
+    # === 性能优化：添加关键索引 ===
+    # 文章列表查询索引
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_contents_feed_id ON contents(feed_id)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_contents_published ON contents(published DESC)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_contents_is_read ON contents(is_read)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_contents_is_starred ON contents(is_starred)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_contents_fetched_at ON contents(fetched_at)')
+    # 复合索引：按订阅源+时间排序（最常用查询场景）
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_contents_feed_published ON contents(feed_id, published DESC)')
+    # FTS5全文搜索索引
+    cursor.execute('''
+        CREATE VIRTUAL TABLE IF NOT EXISTS contents_fts USING fts5(
+            title, summary, content,
+            content='contents',
+            content_rowid='id'
+        )
+    ''')
+    print("[DB] Indexes created/verified")
+
     # 迁移：为旧表添加新字段
     if not _column_exists(cursor, 'contents', 'tags'):
         cursor.execute("ALTER TABLE contents ADD COLUMN tags TEXT")

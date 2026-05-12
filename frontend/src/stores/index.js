@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { getContents, getFeeds, getFeedStats, fetchAllFeeds, getStats, updateContent } from '../api'
+import { getContents, getFeeds, getFeedStats, fetchAllFeeds, getStats, updateContent, getInitData } from '../api'
 
 export const useAppStore = defineStore('app', {
   state: () => ({
@@ -15,7 +15,38 @@ export const useAppStore = defineStore('app', {
     stats: { total: 0, unread: 0, starred: 0, today: 0 }
   }),
   
+  getters: {
+    // 缓存feed id到name的映射，避免O(n)遍历
+    feedNameMap(state) {
+      const map = {}
+      for (const f of state.feeds) {
+        map[f.id] = f.name
+      }
+      return map
+    }
+  },
+  
   actions: {
+    async loadInitData() {
+      this.loading = true
+      try {
+        const res = await getInitData()
+        const data = res.data
+        this.feeds = data.feeds || []
+        this.feedStats = data.feed_stats || []
+        this.stats = data.stats || { total: 0, unread: 0, starred: 0, today: 0 }
+        this.contents = data.contents || []
+      } catch (e) {
+        console.error('loadInitData failed', e)
+        // fallback到旧方式
+        await this.loadFeeds()
+        await this.loadFeedStats()
+        await this.loadContents()
+        await this.loadStats()
+      }
+      this.loading = false
+    },
+    
     async loadFeeds() {
       const res = await getFeeds()
       this.feeds = res.data

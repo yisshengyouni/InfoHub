@@ -73,32 +73,46 @@ def fetch_all_feeds():
     from app.services.feed_parser import fetch_all_feeds as do_fetch_all
     return do_fetch_all()
 
-# === Feed 统计：文章数 + 未读数 ===
+# === Feed 统计：文章数 + 未读数（优化版）===
 
 @router.get("/stats")
 def get_feed_stats():
-    """返回每个订阅源的文章数和未读数"""
+    """返回每个订阅源的文章数和未读数 - 使用子查询优化，避免LEFT JOIN全表扫描"""
     conn = get_db()
     cursor = conn.cursor()
     
+    # 先获取所有订阅源
     cursor.execute("""
-        SELECT 
-            f.id,
-            f.name,
-            f.type,
-            f.category,
-            f.tags,
-            COUNT(c.id) as article_count,
-            SUM(CASE WHEN c.is_read = 0 THEN 1 ELSE 0 END) as unread_count
-        FROM feeds f
-        LEFT JOIN contents c ON f.id = c.feed_id
-        GROUP BY f.id
-        ORDER BY f.created_at DESC
+        SELECT id, name, type, category, tags, created_at
+        FROM feeds
+        ORDER BY created_at DESC
     """)
+    feeds = cursor.fetchall()
     
-    rows = cursor.fetchall()
+    result = []
+    # 使用子查询，每条feed单独COUNT，利用索引
+    for feed in feeds:
+        cursor.execute("SELECT COUNT(*) FROM contents WHERE feed_id = ?", (feed["id"],))
+        article_count = cursor.fetchone()[0]
+        
+        cursor.execute(
+            "SELECT COUNT(*) FROM contents WHERE feed_id = ? AND is_read = 0",
+            (feed["id"],)
+        )
+        unread_count = cursor.fetchone()[0]
+        
+        result.append({
+            "id": feed["id"],
+            "name": feed["name"],
+            "type": feed["type"],
+            "category": feed["category"],
+            "tags": feed["tags"],
+            "article_count": article_count,
+            "unread_count": unread_count
+        })
+    
     conn.close()
-    return [dict(r) for r in rows]
+    return result
 
 # === Feed 标签管理 ===
 

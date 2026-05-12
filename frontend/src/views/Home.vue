@@ -34,7 +34,7 @@
             <span class="source-name">{{ stat.name }}</span>
             <!-- 标签 -->
             <span v-if="stat.tags" class="source-tags">
-              <span v-for="tag in parseTags(stat.tags)" :key="tag" class="mini-tag">{{ tag }}</span>
+              <span v-for="tag in statTags(stat.tags)" :key="tag" class="mini-tag">{{ tag }}</span>
             </span>
           </div>
           <span class="source-counts">
@@ -247,10 +247,7 @@ const sidebarCollapsed = ref(false)
 let searchTimer = null
 
 onMounted(() => {
-  store.loadFeeds()
-  store.loadFeedStats()
-  store.loadContents()
-  store.loadStats()
+  store.loadInitData()
 })
 
 function debounceSearch() {
@@ -275,13 +272,10 @@ async function refresh() {
 }
 
 function getFeedName(feedId) {
-  const feed = store.feeds.find(f => f.id === feedId)
-  return feed?.name || '未知'
+  return store.feedNameMap[feedId] || '未知'
 }
 
 function formatDate(date) {
-  if (!date) return ''
-  return new Date(date).toLocaleDateString('zh-CN')
 }
 
 function typeIcon(type) {
@@ -292,6 +286,11 @@ function typeIcon(type) {
     weibo_search: '📝'
   }
   return icons[type] || '📄'
+}
+
+function statTags(tagsStr) {
+  if (!tagsStr) return []
+  return tagsStr.split(',').map(t => t.trim()).filter(t => t)
 }
 
 function parseTags(tagsStr) {
