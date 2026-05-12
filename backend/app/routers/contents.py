@@ -6,6 +6,80 @@ from datetime import datetime, timedelta
 
 router = APIRouter()
 
+# === 合并初始化API：一次请求返回所有页面所需数据 ===
+
+@router.get("/init-data")
+def get_init_data(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=100)
+):
+    """一次性返回页面初始化所需所有数据，减少前端请求数"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # 1. 订阅源列表
+    cursor.execute("SELECT * FROM feeds ORDER BY created_at DESC")
+    feeds = [dict(r) for r in cursor.fetchall()]
+    
+    # 2. 订阅源统计（使用索引COUNT）
+    feed_stats = []
+    for feed in feeds:
+        cursor.execute("SELECT COUNT(*) FROM contents WHERE feed_id = ?", (feed["id"],))
+        article_count = cursor.fetchone()[0]
+        cursor.execute(
+            "SELECT COUNT(*) FROM contents WHERE feed_id = ? AND is_read = 0",
+            (feed["id"],)
+        )
+        unread_count = cursor.fetchone()[0]
+        feed_stats.append({
+            "id": feed["id"],
+            "name": feed["name"],
+            "type": feed["type"],
+            "category": feed["category"],
+            "tags": feed["tags"],
+            "article_count": article_count,
+            "unread_count": unread_count
+        })
+    
+    # 3. 全局统计
+    cursor.execute("SELECT COUNT(*) FROM contents")
+    total = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM contents WHERE is_read = 0")
+    unread = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM contents WHERE is_starred = 1")
+    starred = cursor.fetchone()[0]
+    today = datetime.now().strftime("%Y-%m-%d")
+    cursor.execute("SELECT COUNT(*) FROM contents WHERE fetched_at >= ?", (today,))
+    today_count = cursor.fetchone()[0]
+    
+    # 4. 文章列表第一页（最新50篇，使用索引）
+    cursor.execute("""
+        SELECT id, feed_id, title, link, author, published,
+               summary, ai_summary, ai_summary_short, ai_summary_long,
+               translated_title, translated_summary, language,
+               is_read, is_starred, tags, read_progress, audio_url
+        FROM contents
+        ORDER BY published DESC
+        LIMIT ? OFFSET ?
+    """, (page_size, (page - 1) * page_size))
+    contents = [dict(r) for r in cursor.fetchall()]
+    
+    conn.close()
+    
+    return {
+        "feeds": feeds,
+        "feed_stats": feed_stats,
+        "stats": {
+            "total": total,
+            "unread": unread,
+            "starred": starred,
+            "today": today_count
+        },
+        "contents": contents,
+        "page": page,
+        "page_size": page_size
+    }
+
 @router.get("/", response_model=list[Content])
 def list_contents(
     feed_id: Optional[int] = None,
@@ -237,77 +311,7 @@ def get_stats():
         "today": today_count
     }
 
-# === 合并初始化API：一次请求返回所有页面所需数据 ===
 
-@router.get("/init-data")
-def get_init_data(
-    page: int = Query(1, ge=1),
-    page_size: int = Query(50, ge=1, le=100)
-):
-    """一次性返回页面初始化所需所有数据，减少前端请求数"""
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    # 1. 订阅源列表
-    cursor.execute("SELECT * FROM feeds ORDER BY created_at DESC")
-    feeds = [dict(r) for r in cursor.fetchall()]
-    
-    # 2. 订阅源统计（使用索引COUNT）
-    feed_stats = []
-    for feed in feeds:
-        cursor.execute("SELECT COUNT(*) FROM contents WHERE feed_id = ?", (feed["id"],))
-        article_count = cursor.fetchone()[0]
-        cursor.execute(
-            "SELECT COUNT(*) FROM contents WHERE feed_id = ? AND is_read = 0",
-            (feed["id"],)
-        )
-        unread_count = cursor.fetchone()[0]
-        feed_stats.append({
-            **feed,
-            "article_count": article_count,
-            "unread_count": unread_count
-        })
-    
-    # 3. 全局统计
-    cursor.execute("SELECT COUNT(*) FROM contents")
-    total = cursor.fetchone()[0]
-    cursor.execute("SELECT COUNT(*) FROM contents WHERE is_read = 0")
-    unread = cursor.fetchone()[0]
-    cursor.execute("SELECT COUNT(*) FROM contents WHERE is_starred = 1")
-    starred = cursor.fetchone()[0]
-    today = datetime.now().strftime("%Y-%m-%d")
-    cursor.execute("SELECT COUNT(*) FROM contents WHERE fetched_at >= ?", (today,))
-    today_count = cursor.fetchone()[0]
-    
-    # 4. 文章列表第一页（最新50篇，使用索引）
-    cursor.execute("""
-        SELECT id, feed_id, title, link, author, published,
-               summary, ai_summary, ai_summary_short, ai_summary_long,
-               translated_title, translated_summary, language,
-               is_read, is_starred, tags, read_progress, audio_url
-        FROM contents
-        ORDER BY published DESC
-        LIMIT ? OFFSET ?
-    """, (page_size, (page - 1) * page_size))
-    contents = [dict(r) for r in cursor.fetchall()]
-    
-    conn.close()
-    
-    return {
-        "feeds": feeds,
-        "feed_stats": feed_stats,
-        "stats": {
-            "total": total,
-            "unread": unread,
-            "starred": starred,
-            "today": today_count
-        },
-        "contents": contents,
-        "page": page,
-        "page_size": page_size
-    }
-
-@router.get("/{content_id}/bilingual")
 def get_bilingual(content_id: int):
     """获取原文+译文对照"""
     conn = get_db()
