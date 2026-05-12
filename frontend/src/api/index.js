@@ -2,8 +2,14 @@ import axios from 'axios'
 
 const api = axios.create({
   baseURL: '/api',
-  timeout: 30000
+  timeout: 120000  // RAG需要更长超时（AI生成可能较慢）
 })
+
+// RAG
+export const ragSearch = (data) => api.post('/rag/search', data)
+export const ragAsk = (data) => api.post('/rag/ask', data)
+
+// 其他已有API保留...
 
 // Feeds
 export const getFeeds = () => api.get('/feeds/')
@@ -29,7 +35,7 @@ export const updateContent = (id, data) => api.patch(`/contents/${id}`, data)
 export const deleteContent = (id) => api.delete(`/contents/${id}`)
 export const getStats = () => api.get('/contents/stats/overview')
 
-// AI Summary (支持多长度)
+// AI Summary
 export const summarize = (data) => api.post('/summary/', data)
 
 // Translate

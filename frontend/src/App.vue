@@ -5,6 +5,7 @@
       <div class="nav-links">
         <router-link to="/" :class="{ active: $route.name === 'home' }">📰 内容</router-link>
         <router-link to="/daily" :class="{ active: $route.name === 'daily' }">🏆 每日精选</router-link>
+        <router-link to="/rag" :class="{ active: $route.name === 'rag' }">🤖 问答</router-link>
         <router-link to="/feeds" :class="{ active: $route.name === 'feeds' }">📡 订阅</router-link>
         <router-link to="/settings" :class="{ active: $route.name === 'settings' }">⚙️ 设置</router-link>
       </div>

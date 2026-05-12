@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
-from app.routers import feeds, contents, summary, translate, settings, discover, tts, daily_picks
+from app.routers import feeds, contents, summary, translate, settings, discover, tts, daily_picks, rag
 
 app = FastAPI(title="Content Aggregator API", version="1.2.0")
 
@@ -23,6 +23,7 @@ app.include_router(settings.router, prefix="/api/settings", tags=["settings"])
 app.include_router(discover.router, prefix="/api/discover", tags=["discover"])
 app.include_router(tts.router, prefix="/api/tts", tags=["tts"])
 app.include_router(daily_picks.router, prefix="/api/daily-picks", tags=["daily_picks"])
+app.include_router(rag.router, prefix="/api/rag", tags=["rag"])
 
 # 挂载静态文件（前端构建产物）
 static_dir = Path(__file__).parent / "static"
