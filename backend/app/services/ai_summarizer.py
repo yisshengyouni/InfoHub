@@ -17,7 +17,13 @@ def get_api_config():
         "ai_model": os.getenv("AI_MODEL", "gpt-3.5-turbo")
     }
 
-def generate_summary(text: str, max_length: int = 200) -> str:
+LENGTH_CONFIG = {
+    "short": {"max_chars": 100, "desc": "一句话简要"},
+    "medium": {"max_chars": 200, "desc": "核心要点"},
+    "long": {"max_chars": 500, "desc": "详细总结"}
+}
+
+def generate_summary(text: str, length: str = "medium") -> str:
     config = get_api_config()
     provider = config["ai_provider"]
     api_key = config["ai_api_key"]
@@ -26,7 +32,8 @@ def generate_summary(text: str, max_length: int = 200) -> str:
     if not api_key:
         return "⚠️ 未配置AI API密钥，请在设置中添加。"
     
-    prompt = f"请用{max_length}字以内总结以下内容：\n\n{text[:3000]}"
+    cfg = LENGTH_CONFIG.get(length, LENGTH_CONFIG["medium"])
+    prompt = f"请用{cfg['max_chars']}字以内对以下内容进行{cfg['desc']}总结：\n\n{text[:3000]}"
     
     if provider == "openai":
         return _call_openai(api_key, model, prompt)

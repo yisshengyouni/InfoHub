@@ -9,14 +9,22 @@ def summarize(req: SummaryRequest):
     from app.services.ai_summarizer import generate_summary
     
     try:
-        summary = generate_summary(req.text, max_length=req.max_length)
+        summary = generate_summary(req.text, length=req.length)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("UPDATE contents SET ai_summary = ? WHERE id = ?", (summary, req.content_id))
+    
+    # 根据长度存到对应字段
+    if req.length == "short":
+        cursor.execute("UPDATE contents SET ai_summary_short = ? WHERE id = ?", (summary, req.content_id))
+    elif req.length == "long":
+        cursor.execute("UPDATE contents SET ai_summary_long = ? WHERE id = ?", (summary, req.content_id))
+    else:
+        cursor.execute("UPDATE contents SET ai_summary = ? WHERE id = ?", (summary, req.content_id))
+    
     conn.commit()
     conn.close()
     
-    return SummaryResponse(content_id=req.content_id, summary=summary)
+    return SummaryResponse(content_id=req.content_id, summary=summary, length=req.length)

@@ -2,7 +2,11 @@
   <div class="feeds-page">
     <div class="feeds-header">
       <h2>📡 订阅源管理</h2>
-      <button class="btn btn-primary" @click="showModal = true">+ 添加订阅</button>
+      <div class="header-actions">
+        <button class="btn" @click="handleExportOPML" title="导出 OPML">📤 导出</button>
+        <button class="btn" @click="showImportModal = true" title="导入 OPML">📥 导入</button>
+        <button class="btn btn-primary" @click="showModal = true">+ 添加订阅</button>
+      </div>
     </div>
 
     <div class="feed-list">
@@ -17,6 +21,28 @@
             </span>
           </div>
           <div class="feed-url">{{ feed.url }}</div>
+          <!-- 标签显示/编辑 -->
+          <div class="feed-tags-row" v-if="feed.tags || editingFeedId === feed.id">
+            <div v-if="editingFeedId !== feed.id" class="tags-display">
+              <span v-for="tag in parseTags(feed.tags)" :key="tag" class="mini-tag">{{ tag }}</span>
+              <button class="tag-edit-btn" @click="startEditTags(feed)">✏️</button>
+              <button class="tag-auto-btn" @click="doAutoTag(feed.id)" title="自动标签">🔄</button>
+            </div>
+            <div v-else class="tags-edit">
+              <input 
+                v-model="tagInput" 
+                @keyup.enter="saveTags(feed.id)"
+                @blur="saveTags(feed.id)"
+                placeholder="标签用逗号分隔"
+                class="tag-input"
+                ref="tagInputRef"
+                autofocus
+              />
+            </div>
+          </div>
+          <div v-else class="feed-tags-row">
+            <button class="tag-add-btn" @click="startEditTags(feed)">+ 添加标签</button>
+          </div>
         </div>
         <div class="feed-actions">
           <button class="btn btn-small" @click="doFetch(feed.id)">🔄 抓取</button>
@@ -100,19 +126,61 @@
         </div>
       </div>
     </div>
+
+    <!-- OPML Import Modal -->
+    <div v-if="showImportModal" class="modal-overlay" @click.self="showImportModal = false">
+      <div class="modal">
+        <h3>📥 导入 OPML</h3>
+        <div class="form-group">
+          <label>粘贴 OPML XML 内容</label>
+          <textarea v-model="opmlContent" class="form-control" rows="8" placeholder="&lt;?xml version=&quot;1.0&quot;?&gt;
+&lt;opml version=&quot;2.0&quot;&gt;
+  &lt;head&gt;&lt;title&gt;我的订阅&lt;/title&gt;&lt;/head&gt;
+  &lt;body&gt;
+    &lt;outline type=&quot;rss&quot; text=&quot;示例博客&quot; xmlUrl=&quot;https://example.com/feed.xml&quot; /&gt;
+  &lt;/body&gt;
+&lt;/opml&gt;
+
+或者粘贴 Inoreader / Feedly / 其他 RSS 阅读器的 OPML 导出内容"></textarea>
+        </div>
+        <div v-if="importResult" class="import-result" :class="{ success: importResult.added > 0, error: importResult.errors?.length }">
+          <div v-if="importResult.added > 0">✅ 成功导入 {{ importResult.added }} 个订阅</div>
+          <div v-if="importResult.skipped > 0">⚠️ {{ importResult.skipped }} 个已存在，跳过</div>
+          <div v-if="importResult.errors?.length" class="import-errors">
+            <div v-for="err in importResult.errors" :key="err.name">❌ {{ err.name }}: {{ err.error }}</div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn" @click="showImportModal = false">取消</button>
+          <button class="btn btn-primary" @click="doImportOPML" :disabled="importing || !opmlContent.trim()">
+            {{ importing ? '导入中...' : '导入' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { getFeeds, createFeed as apiCreateFeed, deleteFeed as apiDeleteFeed, fetchFeed as apiFetchFeed, searchPodcast as apiSearchPodcast, searchWechat as apiSearchWechat } from '../api'
+import { getFeeds, createFeed as apiCreateFeed, deleteFeed as apiDeleteFeed, fetchFeed as apiFetchFeed, searchPodcast as apiSearchPodcast, searchWechat as apiSearchWechat, importOPMLFile, exportOPML, updateFeedTags, autoTagFeed } from '../api'
 
 const feeds = ref([])
 const showModal = ref(false)
+const showImportModal = ref(false)
 const saving = ref(false)
 const searching = ref(false)
 const podcastResults = ref([])
 const wechatResults = ref([])
+
+// 标签编辑
+const editingFeedId = ref(null)
+const tagInput = ref('')
+
+// OPML
+const opmlContent = ref('')
+const importing = ref(false)
+const importResult = ref(null)
 
 const newFeed = ref({
   name: '',
@@ -211,6 +279,30 @@ async function doFetch(id) {
   }
 }
 
+// === 标签管理 ===
+function parseTags(tagsStr) {
+  if (!tagsStr) return []
+  return tagsStr.split(',').map(t => t.trim()).filter(t => t)
+}
+
+function startEditTags(feed) {
+  editingFeedId.value = feed.id
+  tagInput.value = feed.tags || ''
+}
+
+async function saveTags(feedId) {
+  const tags = tagInput.value.trim()
+  await updateFeedTags(feedId, tags)
+  editingFeedId.value = null
+  tagInput.value = ''
+  await loadFeeds()
+}
+
+async function doAutoTag(feedId) {
+  await autoTagFeed(feedId)
+  await loadFeeds()
+}
+
 async function searchPodcast() {
   searching.value = true
   try {
@@ -251,6 +343,39 @@ function selectWechat(acc) {
     newFeed.value.url = 'wechat://' + acc.name
   }
   wechatResults.value = []
+}
+
+// === OPML ===
+async function doImportOPML() {
+  importing.value = true
+  importResult.value = null
+  try {
+    const res = await importOPMLFile(opmlContent.value)
+    importResult.value = res.data
+    if (res.data.added > 0) {
+      await loadFeeds()
+    }
+  } catch (e) {
+    alert(e.response?.data?.detail || '导入失败，请检查 OPML 格式')
+  }
+  importing.value = false
+}
+
+async function handleExportOPML() {
+  try {
+    const res = await exportOPML()
+    const opml = res.data.opml
+    // 创建下载
+    const blob = new Blob([opml], { type: 'text/xml' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `feeds_export_${new Date().toISOString().slice(0,10)}.opml`
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    alert('导出失败')
+  }
 }
 
 onMounted(loadFeeds)
@@ -303,6 +428,8 @@ onMounted(loadFeeds)
   margin-left: 12px;
 }
 
+.header-actions { display: flex; gap: 8px; }
+
 .btn {
   padding: 8px 16px;
   border: none;
@@ -315,6 +442,22 @@ onMounted(loadFeeds)
 .btn-danger { background: #ffebee; color: #c62828; }
 .btn-small { padding: 6px 12px; font-size: 12px; }
 .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* 标签 */
+.feed-tags-row { margin-top: 8px; }
+.tags-display { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.mini-tag { background: #f0f0f5; color: #555; padding: 2px 8px; border-radius: 10px; font-size: 11px; }
+.tag-edit-btn, .tag-auto-btn, .tag-add-btn { background: none; border: none; font-size: 13px; cursor: pointer; padding: 2px 6px; color: #999; }
+.tag-edit-btn:hover, .tag-auto-btn:hover, .tag-add-btn:hover { color: #e94560; }
+.tags-edit { display: flex; }
+.tag-input { flex: 1; padding: 5px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; }
+
+/* OPML 导入结果 */
+.import-result { margin: 12px 0; padding: 12px; border-radius: 8px; font-size: 13px; }
+.import-result.success { background: #e8f5e9; color: #2e7d32; }
+.import-result.error { background: #ffebee; color: #c62828; }
+.import-errors { margin-top: 6px; font-size: 12px; }
+.import-errors div { margin: 2px 0; }
 
 .modal-overlay {
   position: fixed;

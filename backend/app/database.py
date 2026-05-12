@@ -6,6 +6,7 @@ DB_PATH = Path(__file__).parent / "data.db"
 def get_db():
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode = WAL")
     return conn
 
 def _column_exists(cursor, table, column):
@@ -44,6 +45,8 @@ def init_db():
             language TEXT DEFAULT 'zh',
             is_read BOOLEAN DEFAULT 0,
             is_starred BOOLEAN DEFAULT 0,
+            tags TEXT,
+            read_progress REAL DEFAULT 0,
             fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             audio_url TEXT,
             media_type TEXT,
@@ -52,10 +55,69 @@ def init_db():
     ''')
 
     # 迁移：为旧表添加新字段
+    if not _column_exists(cursor, 'contents', 'tags'):
+        cursor.execute("ALTER TABLE contents ADD COLUMN tags TEXT")
+    if not _column_exists(cursor, 'contents', 'read_progress'):
+        cursor.execute("ALTER TABLE contents ADD COLUMN read_progress REAL DEFAULT 0")
+
+    # 迁移：为旧表添加新字段
     if not _column_exists(cursor, 'contents', 'audio_url'):
         cursor.execute("ALTER TABLE contents ADD COLUMN audio_url TEXT")
     if not _column_exists(cursor, 'contents', 'media_type'):
         cursor.execute("ALTER TABLE contents ADD COLUMN media_type TEXT")
+    if not _column_exists(cursor, 'contents', 'tags'):
+        cursor.execute("ALTER TABLE contents ADD COLUMN tags TEXT")
+    if not _column_exists(cursor, 'contents', 'read_progress'):
+        cursor.execute("ALTER TABLE contents ADD COLUMN read_progress REAL DEFAULT 0")
+    if not _column_exists(cursor, 'contents', 'ai_summary_short'):
+        cursor.execute("ALTER TABLE contents ADD COLUMN ai_summary_short TEXT")
+    if not _column_exists(cursor, 'contents', 'ai_summary_long'):
+        cursor.execute("ALTER TABLE contents ADD COLUMN ai_summary_long TEXT")
+    
+    # feeds 标签字段
+    if not _column_exists(cursor, 'feeds', 'tags'):
+        cursor.execute("ALTER TABLE feeds ADD COLUMN tags TEXT")
+        print("[DB MIGRATION] Added feeds.tags column")
+    else:
+        print("[DB CHECK] feeds.tags column exists")
+
+    # FTS5 全文搜索虚拟表
+    cursor.execute('''
+        CREATE VIRTUAL TABLE IF NOT EXISTS contents_fts USING fts5(
+            title, summary, content,
+            content='contents', content_rowid='id'
+        )
+    ''')
+    
+    # FTS5 触发器：自动同步
+    cursor.execute('''
+        CREATE TRIGGER IF NOT EXISTS contents_fts_insert AFTER INSERT ON contents BEGIN
+            INSERT INTO contents_fts(rowid, title, summary, content)
+            VALUES (new.id, new.title, new.summary, new.content);
+        END
+    ''')
+    cursor.execute('''
+        CREATE TRIGGER IF NOT EXISTS contents_fts_delete AFTER DELETE ON contents BEGIN
+            INSERT INTO contents_fts(contents_fts, rowid, title, summary, content)
+            VALUES ('delete', old.id, old.title, old.summary, old.content);
+        END
+    ''')
+    cursor.execute('''
+        CREATE TRIGGER IF NOT EXISTS contents_fts_update AFTER UPDATE ON contents BEGIN
+            INSERT INTO contents_fts(contents_fts, rowid, title, summary, content)
+            VALUES ('delete', old.id, old.title, old.summary, old.content);
+            INSERT INTO contents_fts(rowid, title, summary, content)
+            VALUES (new.id, new.title, new.summary, new.content);
+        END
+    ''')
+
+    # 为已有数据重建 FTS 索引（如果表是空的或刚创建）
+    cursor.execute("SELECT count(*) FROM contents_fts")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute('''
+            INSERT INTO contents_fts(rowid, title, summary, content)
+            SELECT id, title, summary, content FROM contents
+        ''')
 
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS settings (
@@ -68,6 +130,17 @@ def init_db():
         )
     ''')
 
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS daily_picks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date TEXT NOT NULL UNIQUE,
+            title TEXT,
+            content_ids TEXT NOT NULL,
+            article_count INTEGER DEFAULT 0,
+            generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
     # 插入默认设置
     cursor.execute("INSERT OR IGNORE INTO settings (id) VALUES (1)")
 

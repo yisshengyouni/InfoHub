@@ -56,8 +56,22 @@ def _fetch_rss_feed(feed):
         content_raw = entry.get("content", [{"value": ""}])
         content = str(content_raw[0].get("value", summary)) if content_raw else summary
         author = str(entry.get("author", ""))
-        published_raw = entry.get("published", entry.get("updated", datetime.now().isoformat()))
-        published = str(published_raw)
+        # 解析 published 为 ISO 8601 格式，便于数据库排序
+        published_raw = entry.get("published", entry.get("updated", ""))
+        published_iso = ""
+        if published_raw:
+            try:
+                # feedparser 提供 parsed 时间元组
+                pp = entry.get("published_parsed") or entry.get("updated_parsed")
+                if pp:
+                    published_iso = datetime(*pp[:6]).isoformat()
+                else:
+                    published_iso = str(published_raw)
+            except Exception:
+                published_iso = str(published_raw)
+        else:
+            published_iso = datetime.now().isoformat()
+        published = published_iso
         
         # 提取播客/媒体文件（通用）
         audio_url = None
