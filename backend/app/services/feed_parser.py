@@ -31,7 +31,7 @@ def fetch_feed(feed_id: int):
         return _fetch_wechat_feed(feed)
     elif feed_type == "weibo_search":
         return _fetch_weibo_feed(feed)
-    elif feed_type in ("podcast", "rss"):
+    elif feed_type in ("podcast", "rss", "douyin", "xiaohongshu"):
         return _fetch_rss_feed(feed)
     else:
         return _fetch_rss_feed(feed)

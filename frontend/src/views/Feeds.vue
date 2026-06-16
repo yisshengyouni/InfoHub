@@ -63,6 +63,8 @@
             <option value="podcast">🎙️ 播客 RSS（小宇宙/苹果播客/Spotify）</option>
             <option value="wechat_search">📱 微信公众号（搜狗搜索）</option>
             <option value="weibo_search">📝 微博搜索</option>
+            <option value="douyin">🎵 抖音 (RSSHub)</option>
+            <option value="xiaohongshu">📕 小红书 (RSSHub)</option>
           </select>
           <div class="type-hint">{{ typeHint }}</div>
         </div>
@@ -193,21 +195,27 @@ const typeHints = {
   rss: '支持任意 RSS/Atom 订阅源：博客、新闻网站、知乎专栏、第三方RSS桥接等',
   podcast: '输入播客名称搜索，或粘贴 RSS 链接直接订阅',
   wechat_search: '输入公众号名称。优先使用 Wechat2RSS 全文订阅（收录300+公众号），未收录则回退搜狗搜索',
-  weibo_search: '输入微博用户昵称或搜索关键词'
+  weibo_search: '输入微博用户昵称或搜索关键词',
+  douyin: '需要使用 RSSHub 提供订阅链接，例如 https://rsshub.app/douyin/user/:uid',
+  xiaohongshu: '需要使用 RSSHub 提供订阅链接，例如 https://rsshub.app/xiaohongshu/user/:user_id'
 }
 
 const urlLabels = {
   rss: 'RSS 链接',
   podcast: 'RSS 链接 或 播客名称',
   wechat_search: '公众号名称',
-  weibo_search: '微博昵称/关键词'
+  weibo_search: '微博昵称/关键词',
+  douyin: 'RSSHub 抖音链接',
+  xiaohongshu: 'RSSHub 小红书链接'
 }
 
 const urlPlaceholders = {
   rss: 'https://example.com/feed.xml',
   podcast: '搜索播客名称或粘贴 RSS 链接',
   wechat_search: '如：36氪、阮一峰的网络日志',
-  weibo_search: '如：央视新闻。提示：微博反爬严格，建议通过 RSSHub 获取 RSS 链接后直接作为 RSS 订阅'
+  weibo_search: '如：央视新闻。提示：微博反爬严格，建议通过 RSSHub 获取 RSS 链接后直接作为 RSS 订阅',
+  douyin: '如：https://rsshub.app/douyin/user/MS4wLjABAAAA...',
+  xiaohongshu: '如：https://rsshub.app/xiaohongshu/user/5c1a16620000000007011d8c'
 }
 
 const typeHint = computed(() => typeHints[newFeed.value.type] || '')
@@ -219,7 +227,9 @@ function typeLabel(type) {
     rss: 'RSS',
     podcast: '播客',
     wechat_search: '公众号',
-    weibo_search: '微博'
+    weibo_search: '微博',
+    douyin: '抖音',
+    xiaohongshu: '小红书'
   }
   return map[type] || type
 }
@@ -418,6 +428,8 @@ onMounted(loadFeeds)
 .feed-type.podcast { background: #fce4ec; color: #c2185b; }
 .feed-type.wechat_search { background: #e8f5e9; color: #388e3c; }
 .feed-type.weibo_search { background: #fff3e0; color: #f57c00; }
+.feed-type.douyin { background: #1c1c1e; color: #ff0050; }
+.feed-type.xiaohongshu { background: #ffebee; color: #ff2442; }
 .feed-category { color: #666; }
 .feed-time { color: #999; }
 .feed-url { font-size: 12px; color: #999; word-break: break-all; }

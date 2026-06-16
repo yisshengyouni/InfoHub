@@ -13,6 +13,8 @@ AUTO_TAGS = {
     "podcast": ["播客", "音频"],
     "wechat_search": ["公众号", "微信"],
     "weibo_search": ["微博", "社交"],
+    "douyin": ["抖音", "短视频"],
+    "xiaohongshu": ["小红书", "笔记"],
 }
 
 def get_auto_tags(feed_type: str) -> str:
