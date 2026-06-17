@@ -161,9 +161,21 @@
           <button @click="doTTS(item)" :disabled="ttsLoading === item.id" :class="{ playing: playingAudio === item.id }">
             🔊 {{ playingAudio === item.id ? '播放中' : (item.tts_url ? '朗读' : '生成语音') }}
           </button>
+          <button @click="exportToMarkdown(item)" class="export-btn" title="导出为 Markdown">
+            📥 导出MD
+          </button>
+          <button @click="copyToClipboard(item)" class="copy-btn" title="复制纯文本">
+            📋 复制
+          </button>
           <a :href="item.link" target="_blank">🔗 阅读原文</a>
         </div>
         
+        <!-- 播客音频播放器 (Podcast audio) -->
+        <div v-if="item.audio_url" class="podcast-player">
+          <h4>🎙️ 播客音频</h4>
+          <audio :src="item.audio_url" controls preload="metadata"></audio>
+        </div>
+
         <!-- TTS音频播放器 -->
         <div v-if="item.tts_url" class="tts-player">
           <audio :src="item.tts_url" controls @play="playingAudio = item.id" @pause="playingAudio = null" @ended="playingAudio = null"></audio>
@@ -377,6 +389,44 @@ async function doTTS(item) {
   ttsLoading.value = null
 }
 
+function generateMarkdown(item) {
+  let md = `# ${item.title}\n\n`;
+  if (item.author) md += `**作者:** ${item.author}\n`;
+  if (item.published) md += `**发布时间:** ${item.published}\n`;
+  md += `**链接:** [阅读原文](${item.link})\n\n`;
+  md += `---\n\n`;
+  if (item.ai_summary_short) md += `### 短摘要\n${item.ai_summary_short}\n\n`;
+  if (item.ai_summary) md += `### 中摘要\n${item.ai_summary}\n\n`;
+  if (item.ai_summary_long) md += `### 长摘要\n${item.ai_summary_long}\n\n`;
+  if (item.summary || item.content) {
+    md += `### 原文/摘要\n${item.summary || item.content}\n\n`;
+  }
+  return md;
+}
+
+function exportToMarkdown(item) {
+  const mdContent = generateMarkdown(item);
+  const blob = new Blob([mdContent], { type: 'text/markdown;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${item.title.replace(/[\/\?<>\\:\*\|":]/g, '')}.md`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+async function copyToClipboard(item) {
+  const mdContent = generateMarkdown(item);
+  try {
+    await navigator.clipboard.writeText(mdContent);
+    alert('已复制到剪贴板！');
+  } catch (err) {
+    alert('复制失败: ' + err);
+  }
+}
+
 async function doTranslate(item) {
   translating.value = item.id
   const text = item.ai_summary || item.summary || item.title
@@ -440,6 +490,7 @@ async function doTranslate(item) {
   background: #f8f8f8; font-size: 12px; cursor: pointer; text-decoration: none; color: #333;
 }
 .card-footer button:hover { background: #1a1a2e; color: white; border-color: #1a1a2e; }
+.card-footer button.export-btn:hover, .card-footer button.copy-btn:hover { background: #e94560; color: white; border-color: #e94560; }
 .card-footer a { background: #e94560; color: white; border-color: #e94560; font-weight: 500; }
 .card-footer a:hover { background: #d13a52; }
 
@@ -481,6 +532,9 @@ async function doTranslate(item) {
 /* TTS播放器 */
 .tts-player { margin-top: 10px; padding: 8px 12px; background: #f8f9fa; border-radius: 8px; }
 .tts-player audio { width: 100%; height: 36px; }
+.podcast-player { margin: 12px 0; padding: 12px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #1a1a2e; }
+.podcast-player h4 { margin: 0 0 8px 0; font-size: 14px; color: #333; }
+.podcast-player audio { width: 100%; height: 40px; }
 .tts-player-modal { margin: 12px 0; padding: 10px; background: #f0f7ff; border-radius: 8px; }
 .modal-tts-btn { background: #1a1a2e; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
 .modal-tts-btn:hover { background: #e94560; }
