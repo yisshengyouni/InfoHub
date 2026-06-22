@@ -25,6 +25,16 @@ app.include_router(tts.router, prefix="/api/tts", tags=["tts"])
 app.include_router(daily_picks.router, prefix="/api/daily-picks", tags=["daily_picks"])
 app.include_router(rag.router, prefix="/api/rag", tags=["rag"])
 
+from app.scheduler import start_scheduler, stop_scheduler
+
+@app.on_event("startup")
+def on_startup():
+    start_scheduler()
+
+@app.on_event("shutdown")
+def on_shutdown():
+    stop_scheduler()
+
 # 挂载静态文件（前端构建产物）
 static_dir = Path(__file__).parent / "static"
 tts_dir = static_dir / "tts_audio"
