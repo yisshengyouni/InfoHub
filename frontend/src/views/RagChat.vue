@@ -133,19 +133,19 @@ function formatAnswer(text) {
 .rag-header h2 { margin: 0; font-size: 22px; }
 .rag-desc { color: #888; font-size: 14px; margin-top: 4px; }
 
-.chat-box { background: white; border-radius: 12px; padding: 16px; min-height: 300px; max-height: 60vh; overflow-y: auto; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+.chat-box { background: var(--card-bg); border-radius: 12px; padding: 16px; min-height: 300px; max-height: 60vh; overflow-y: auto; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
 .message { display: flex; gap: 12px; margin-bottom: 16px; }
 .message.user { flex-direction: row-reverse; }
 .msg-avatar { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
 .msg-content { flex: 1; min-width: 0; }
 .user-text { background: #1a1a2e; color: white; padding: 10px 14px; border-radius: 12px; display: inline-block; max-width: 80%; }
-.ai-answer { line-height: 1.7; font-size: 14px; color: #333; }
-.cite { color: #e94560; font-weight: bold; }
+.ai-answer { line-height: 1.7; font-size: 14px; color: var(--text-color); }
+.cite { color: var(--primary-color); font-weight: bold; }
 
-.sources { margin-top: 12px; padding-top: 12px; border-top: 1px dashed #eee; }
+.sources { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-color); }
 .sources-title { font-size: 12px; color: #888; margin-bottom: 8px; }
-.source-item { margin-bottom: 8px; padding: 8px 12px; background: #f8f9fa; border-radius: 8px; }
-.source-link { display: flex; gap: 8px; align-items: center; text-decoration: none; color: #1a1a2e; font-size: 13px; }
+.source-item { margin-bottom: 8px; padding: 8px 12px; background: var(--btn-bg); border-radius: 8px; }
+.source-link { display: flex; gap: 8px; align-items: center; text-decoration: none; color: var(--text-color); font-size: 13px; }
 .source-link:hover .source-title { color: #e94560; }
 .source-num { color: #e94560; font-weight: bold; min-width: 30px; }
 .source-title { flex: 1; }
@@ -158,15 +158,15 @@ function formatAnswer(text) {
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
 .input-bar { display: flex; gap: 10px; margin-top: 16px; }
-.question-input { flex: 1; padding: 12px 16px; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; }
-.question-input:focus { outline: none; border-color: #e94560; }
-.send-btn { padding: 12px 24px; background: #e94560; color: white; border: none; border-radius: 10px; font-size: 14px; cursor: pointer; white-space: nowrap; }
-.send-btn:hover { background: #d13a52; }
+.question-input { flex: 1; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: 10px; font-size: 14px; background: var(--bg-color); color: var(--text-color); }
+.question-input:focus { outline: none; border-color: var(--primary-color); }
+.send-btn { padding: 12px 24px; background: var(--primary-color); color: white; border: none; border-radius: 10px; font-size: 14px; cursor: pointer; white-space: nowrap; }
+.send-btn:hover { filter: brightness(0.9); }
 .send-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .quick-questions { margin-top: 20px; text-align: center; }
 .quick-title { font-size: 13px; color: #888; margin-bottom: 10px; }
 .quick-tags { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-.quick-tag { padding: 8px 14px; border: 1px solid #ddd; border-radius: 20px; background: white; font-size: 13px; cursor: pointer; color: #555; }
-.quick-tag:hover { border-color: #e94560; color: #e94560; }
+.quick-tag { padding: 8px 14px; border: 1px solid var(--border-color); border-radius: 20px; background: var(--card-bg); font-size: 13px; cursor: pointer; color: var(--text-color); }
+.quick-tag:hover { border-color: var(--primary-color); color: var(--primary-color); }
 </style>

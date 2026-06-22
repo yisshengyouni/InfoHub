@@ -1,7 +1,12 @@
 <template>
   <div class="home-layout">
+    <!-- 移动端汉堡包菜单按钮 -->
+    <button class="mobile-menu-btn" @click="mobileMenuOpen = !mobileMenuOpen">
+      ☰
+    </button>
+
     <!-- 左侧：订阅来源目录 -->
-    <aside class="feed-sidebar" v-if="store.feedStats.length">
+    <aside class="feed-sidebar" :class="{ 'mobile-open': mobileMenuOpen }" v-if="store.feedStats.length">
       <div class="sidebar-header">
         <h4>订阅来源</h4>
         <button class="sidebar-toggle" @click="sidebarCollapsed = !sidebarCollapsed">
@@ -13,7 +18,7 @@
         <div 
           class="feed-source-item all" 
           :class="{ active: !store.currentFeed }"
-          @click="store.setFeedFilter(null)"
+          @click="store.setFeedFilter(null); mobileMenuOpen = false"
         >
           <span class="source-name">全部来源</span>
           <span class="source-counts">
@@ -27,7 +32,7 @@
           :key="stat.id"
           class="feed-source-item"
           :class="{ active: store.currentFeed === stat.id }"
-          @click="store.setFeedFilter(stat.id)"
+          @click="store.setFeedFilter(stat.id); mobileMenuOpen = false"
         >
           <div class="source-info">
             <span class="source-icon">{{ typeIcon(stat.type) }}</span>
@@ -256,6 +261,7 @@ const editingTags = ref(null)
 const tagInput = ref('')
 const tagInputRef = ref(null)
 const sidebarCollapsed = ref(false)
+const mobileMenuOpen = ref(false)
 let searchTimer = null
 
 onMounted(() => {
@@ -457,12 +463,12 @@ async function doTranslate(item) {
 .loading, .empty { text-align: center; padding: 40px; color: #999; }
 .content-list { display: flex; flex-direction: column; gap: 12px; }
 
-.content-card { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-.content-card.unread { border-left: 3px solid #e94560; }
+.content-card { background: var(--card-bg); border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.content-card.unread { border-left: 3px solid var(--primary-color); }
 
 .card-header { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
-.card-header h3 { flex: 1; font-size: 16px; color: #1a1a2e; cursor: pointer; margin: 0; line-height: 1.4; }
-.card-header h3:hover { color: #e94560; }
+.card-header h3 { flex: 1; font-size: 16px; color: var(--text-color); cursor: pointer; margin: 0; line-height: 1.4; }
+.card-header h3:hover { color: var(--primary-color); }
 
 .card-actions { display: flex; gap: 6px; }
 .card-actions button { background: none; border: none; font-size: 16px; cursor: pointer; padding: 4px; }
@@ -486,13 +492,13 @@ async function doTranslate(item) {
 
 .card-footer { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
 .card-footer button, .card-footer a { 
-  padding: 6px 12px; border-radius: 6px; border: 1px solid #ddd; 
-  background: #f8f8f8; font-size: 12px; cursor: pointer; text-decoration: none; color: #333;
+  padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border-color);
+  background: var(--btn-bg); font-size: 12px; cursor: pointer; text-decoration: none; color: var(--text-color);
 }
-.card-footer button:hover { background: #1a1a2e; color: white; border-color: #1a1a2e; }
-.card-footer button.export-btn:hover, .card-footer button.copy-btn:hover { background: #e94560; color: white; border-color: #e94560; }
-.card-footer a { background: #e94560; color: white; border-color: #e94560; font-weight: 500; }
-.card-footer a:hover { background: #d13a52; }
+.card-footer button:hover { background: var(--btn-hover); color: var(--btn-hover-text); border-color: var(--btn-hover); }
+.card-footer button.export-btn:hover, .card-footer button.copy-btn:hover { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+.card-footer a { background: var(--primary-color); color: white; border-color: var(--primary-color); font-weight: 500; }
+.card-footer a:hover { filter: brightness(0.9); }
 
 .ai-results { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
 .ai-box { border-radius: 8px; padding: 10px 14px; font-size: 13px; line-height: 1.6; }
@@ -546,18 +552,29 @@ async function doTranslate(item) {
 }
 
 /* === 侧边栏：订阅来源目录 === */
+.mobile-menu-btn {
+  display: none;
+  background: var(--nav-bg);
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 18px;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
 .home-layout { display: flex; gap: 16px; min-height: 100vh; }
-.feed-sidebar { width: 240px; min-width: 240px; background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); align-self: flex-start; position: sticky; top: 70px; max-height: calc(100vh - 90px); overflow-y: auto; }
+.feed-sidebar { width: 240px; min-width: 240px; background: var(--card-bg); border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); align-self: flex-start; position: sticky; top: 70px; max-height: calc(100vh - 90px); overflow-y: auto; }
 .feed-sidebar::-webkit-scrollbar { width: 4px; }
 .feed-sidebar::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
-.sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
-.sidebar-header h4 { margin: 0; font-size: 14px; color: #1a1a2e; }
+.sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
+.sidebar-header h4 { margin: 0; font-size: 14px; color: var(--text-color); }
 .sidebar-toggle { background: none; border: none; font-size: 12px; cursor: pointer; color: #999; padding: 2px 6px; }
-.sidebar-toggle:hover { color: #e94560; }
+.sidebar-toggle:hover { color: var(--primary-color); }
 .sidebar-content.collapsed { display: none; }
 .feed-source-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-radius: 8px; cursor: pointer; transition: all 0.2s; margin-bottom: 4px; }
-.feed-source-item:hover { background: #f5f5f5; }
-.feed-source-item.active { background: #e94560; color: white; }
+.feed-source-item:hover { background: var(--btn-bg); }
+.feed-source-item.active { background: var(--primary-color); color: white; }
 .feed-source-item.active .source-name { color: white; }
 .feed-source-item.active .count-total { color: rgba(255,255,255,0.8); }
 .feed-source-item.active .count-unread { background: white; color: #e94560; }
@@ -575,10 +592,20 @@ async function doTranslate(item) {
 .home-main { flex: 1; min-width: 0; }
 
 @media (max-width: 768px) {
-  .home-layout { flex-direction: column; }
-  .feed-sidebar { width: 100%; min-width: auto; position: static; max-height: none; }
-  .sidebar-content { display: flex; flex-wrap: wrap; gap: 4px; }
-  .feed-source-item { flex: 1; min-width: 140px; }
+  .mobile-menu-btn { display: inline-block; }
+  .home-layout { flex-direction: column; position: relative; }
+  .feed-sidebar {
+    display: none;
+    position: absolute;
+    top: 50px;
+    left: 0;
+    width: 250px;
+    z-index: 100;
+    box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+  }
+  .feed-sidebar.mobile-open { display: block; }
+  .sidebar-content { display: block; }
+  .feed-source-item { min-width: auto; }
   .toolbar { flex-direction: column; }
   .filters { width: 100%; }
   .stats-bar { justify-content: space-between; }

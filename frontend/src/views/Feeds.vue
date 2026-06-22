@@ -115,6 +115,17 @@
           </div>
         </div>
 
+        <!-- RSSHub Guide -->
+        <div v-if="['weibo_search', 'douyin', 'xiaohongshu'].includes(newFeed.type)" class="rsshub-guide">
+          <h4>💡 RSSHub 辅助工具</h4>
+          <p class="guide-desc">对于微博、抖音、小红书等平台，建议使用 <a href="https://docs.rsshub.app" target="_blank">RSSHub</a> 生成标准 RSS 链接。</p>
+          <div class="guide-inputs">
+            <input v-model="rsshubId" class="form-control guide-input" placeholder="输入用户ID (如微博UID)" />
+            <button class="btn btn-small guide-btn" @click="generateRssHubLink">生成订阅链接</button>
+          </div>
+          <p class="guide-note" v-if="newFeed.type === 'weibo_search'">示例链接：https://rsshub.app/weibo/user/123456</p>
+        </div>
+
         <div class="form-group">
           <label>分类</label>
           <input v-model="newFeed.category" class="form-control" placeholder="如：科技新闻" />
@@ -183,6 +194,8 @@ const tagInput = ref('')
 const opmlContent = ref('')
 const importing = ref(false)
 const importResult = ref(null)
+
+const rsshubId = ref('')
 
 const newFeed = ref({
   name: '',
@@ -341,6 +354,22 @@ async function searchWechat() {
   searching.value = false
 }
 
+function generateRssHubLink() {
+  if (!rsshubId.value) return
+  const id = rsshubId.value.trim()
+  let url = ''
+  if (newFeed.value.type === 'weibo_search') {
+    url = `https://rsshub.app/weibo/user/${id}`
+  } else if (newFeed.value.type === 'douyin') {
+    url = `https://rsshub.app/douyin/user/${id}`
+  } else if (newFeed.value.type === 'xiaohongshu') {
+    url = `https://rsshub.app/xiaohongshu/user/${id}`
+  }
+  newFeed.value.url = url
+  newFeed.value.type = 'rss' // RSSHub 生成的是标准 RSS
+  alert(`已生成 RSS 链接: ${url}\n注意：由于 RSSHub 返回的是标准 RSS 格式，已自动将类型切换为 "RSS / Atom"。`)
+}
+
 function selectWechat(acc) {
   if (acc.source === 'wechat2rss' && acc.rss_url) {
     // Wechat2RSS 收录 → 直接用 RSS 类型订阅（获取全文）
@@ -403,7 +432,7 @@ onMounted(loadFeeds)
 
 .feed-list { display: flex; flex-direction: column; gap: 12px; }
 .feed-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 16px;
   display: flex;
@@ -446,10 +475,12 @@ onMounted(loadFeeds)
   padding: 8px 16px;
   border: none;
   border-radius: 8px;
-  background: #f0f0f0;
+  background: var(--btn-bg);
+  color: var(--text-color);
   cursor: pointer;
   font-size: 14px;
 }
+.btn:hover { filter: brightness(0.9); }
 .btn-primary { background: #1976d2; color: white; }
 .btn-danger { background: #ffebee; color: #c62828; }
 .btn-small { padding: 6px 12px; font-size: 12px; }
@@ -482,7 +513,7 @@ onMounted(loadFeeds)
   padding: 16px;
 }
 .modal {
-  background: white;
+  background: var(--card-bg);
   border-radius: 16px;
   padding: 24px;
   width: 100%;
@@ -513,6 +544,15 @@ onMounted(loadFeeds)
   color: #888;
   margin-top: 4px;
 }
+
+/* RSSHub Guide */
+.rsshub-guide { background: var(--btn-bg); padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 3px solid var(--primary-color); }
+.rsshub-guide h4 { margin: 0 0 6px 0; font-size: 14px; color: var(--primary-color); }
+.guide-desc { font-size: 13px; color: var(--text-color); opacity: 0.8; margin-bottom: 8px; }
+.guide-inputs { display: flex; gap: 8px; }
+.guide-input { flex: 1; }
+.guide-btn { white-space: nowrap; }
+.guide-note { font-size: 12px; color: #888; margin-top: 6px; }
 
 .search-box { margin: 8px 0; }
 .search-results {

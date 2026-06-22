@@ -1,3 +1,26 @@
+<script setup>
+import { ref, onMounted } from 'vue'
+
+const isDark = ref(false)
+
+function toggleTheme() {
+  isDark.value = !isDark.value
+  if (isDark.value) {
+    document.documentElement.classList.add('dark')
+    localStorage.setItem('theme', 'dark')
+  } else {
+    document.documentElement.classList.remove('dark')
+    localStorage.setItem('theme', 'light')
+  }
+}
+
+onMounted(() => {
+  if (document.documentElement.classList.contains('dark')) {
+    isDark.value = true
+  }
+})
+</script>
+
 <template>
   <div class="app">
     <nav class="nav">
@@ -8,6 +31,9 @@
         <router-link to="/rag" :class="{ active: $route.name === 'rag' }">问答</router-link>
         <router-link to="/feeds" :class="{ active: $route.name === 'feeds' }">订阅</router-link>
         <router-link to="/settings" :class="{ active: $route.name === 'settings' }">设置</router-link>
+        <button class="theme-toggle" @click="toggleTheme" :title="isDark ? '切换到白天模式' : '切换到暗黑模式'">
+          {{ isDark ? '☀️' : '🌙' }}
+        </button>
       </div>
     </nav>
     <main class="main">
@@ -41,6 +67,18 @@
 .nav-links a.active, .nav-links a:hover { 
   color: white; 
   background: rgba(255,255,255,0.15); 
+}
+.theme-toggle {
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px;
+  margin-left: 8px;
+  border-radius: 4px;
+}
+.theme-toggle:hover {
+  background: rgba(255,255,255,0.15);
 }
 .main { flex: 1; padding: 16px; max-width: 900px; margin: 0 auto; width: 100%; }
 </style>

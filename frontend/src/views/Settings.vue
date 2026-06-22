@@ -87,15 +87,16 @@ async function saveSettings() {
 
 <style scoped>
 .settings-page { max-width: 600px; }
-h2 { font-size: 20px; color: #1a1a2e; margin-bottom: 20px; }
+h2 { font-size: 20px; color: var(--text-color); margin-bottom: 20px; }
 
-.setting-card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-.setting-card h3 { font-size: 16px; margin-bottom: 16px; color: #333; }
+.setting-card { background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.setting-card h3 { font-size: 16px; margin-bottom: 16px; color: var(--text-color); }
 
 .form-group { margin-bottom: 16px; }
-.form-group label { display: block; font-size: 13px; color: #666; margin-bottom: 6px; }
+.form-group label { display: block; font-size: 13px; color: var(--text-color); opacity: 0.8; margin-bottom: 6px; }
 .form-group input, .form-group select { 
-  width: 100%; padding: 10px 12px; border: 1px solid #ddd; 
+  width: 100%; padding: 10px 12px; border: 1px solid var(--border-color);
+  background: var(--bg-color); color: var(--text-color);
   border-radius: 8px; font-size: 14px; 
 }
 

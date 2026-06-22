@@ -218,7 +218,7 @@ async function doTranslate(item) {
 .daily-pick-page { padding-bottom: 40px; }
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 .header h2 { margin: 0; font-size: 22px; }
-.btn { padding: 8px 16px; border-radius: 6px; border: 1px solid #ddd; background: white; cursor: pointer; font-size: 13px; }
+.btn { padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--btn-bg); color: var(--text-color); cursor: pointer; font-size: 13px; }
 .btn-primary { background: #e94560; color: white; border: none; }
 .btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
@@ -229,7 +229,7 @@ async function doTranslate(item) {
 .today-meta { font-size: 13px; opacity: 0.9; }
 
 .article-list { display: flex; flex-direction: column; gap: 12px; }
-.article-card { background: white; border-radius: 10px; padding: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+.article-card { background: var(--card-bg); border-radius: 10px; padding: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
 .article-card.unread { border-left: 3px solid #e94560; }
 .article-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
 .article-header h3 { margin: 0; font-size: 16px; cursor: pointer; flex: 1; }
@@ -251,8 +251,8 @@ async function doTranslate(item) {
 
 .history-section h3 { margin-bottom: 12px; }
 .history-list { display: flex; flex-direction: column; gap: 8px; }
-.history-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: white; border-radius: 8px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-.history-item:hover { background: #f8f9fa; }
+.history-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--card-bg); border-radius: 8px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.history-item:hover { background: var(--btn-bg); }
 .history-date { font-weight: bold; color: #667eea; min-width: 90px; }
 .history-title { flex: 1; font-size: 14px; }
 .history-count { font-size: 12px; color: #888; background: #f0f0f0; padding: 2px 8px; border-radius: 10px; }
@@ -261,8 +261,8 @@ async function doTranslate(item) {
 
 /* 弹窗 */
 .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
-.modal-content { background: white; border-radius: 12px; max-width: 700px; width: 100%; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column; }
-.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #eee; }
+.modal-content { background: var(--card-bg); border-radius: 12px; max-width: 700px; width: 100%; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border-color); }
 .modal-header h2 { margin: 0; font-size: 18px; }
 .modal-header button { background: none; border: none; font-size: 20px; cursor: pointer; }
 .modal-body { padding: 20px; overflow-y: auto; flex: 1; }
