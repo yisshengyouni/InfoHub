@@ -1,0 +1,24 @@
+.gitignore
+  h_b85baef726d713 65-67
+agent-profile.md
+  h_b85baef726d713 1-37
+backend/app/database.py
+  h_b85baef726d713 48-49,97-107
+backend/app/main.py
+  h_b85baef726d713 6,27,30-31,35-39
+backend/app/routers/agent.py
+  h_b85baef726d713 1-118
+backend/app/routers/feeds.py
+  h_b85baef726d713 16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9b7fe1c5fd4a54c1d9dc080b30250a4156d532a8",
+  "prompts": {},
+  "humans": {
+    "h_b85baef726d713": {
+      "author": "huqiang <qiang.hu@hipac.cn>"
+    }
+  }
+}
