@@ -45,6 +45,8 @@ def init_db():
             language TEXT DEFAULT 'zh',
             is_read BOOLEAN DEFAULT 0,
             is_starred BOOLEAN DEFAULT 0,
+            value_score REAL,
+            status TEXT DEFAULT 'inbox',
             tags TEXT,
             read_progress REAL DEFAULT 0,
             fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -92,6 +94,17 @@ def init_db():
         cursor.execute("ALTER TABLE contents ADD COLUMN ai_summary_short TEXT")
     if not _column_exists(cursor, 'contents', 'ai_summary_long'):
         cursor.execute("ALTER TABLE contents ADD COLUMN ai_summary_long TEXT")
+
+    # === Agent 大脑架构：价值分与路由状态 ===
+    # value_score: AI Agent 打的价值分（0~10，None=未评估）
+    # status: 路由状态 inbox(未处理) / reading(阅读流) / archive(归档)
+    if not _column_exists(cursor, 'contents', 'value_score'):
+        cursor.execute("ALTER TABLE contents ADD COLUMN value_score REAL")
+        print("[DB MIGRATION] Added contents.value_score column")
+    if not _column_exists(cursor, 'contents', 'status'):
+        cursor.execute("ALTER TABLE contents ADD COLUMN status TEXT DEFAULT 'inbox'")
+        print("[DB MIGRATION] Added contents.status column")
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_contents_status ON contents(status)')
     
     # feeds 标签字段
     if not _column_exists(cursor, 'feeds', 'tags'):

@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
-from app.routers import feeds, contents, summary, translate, settings, discover, tts, daily_picks, rag
+from app.routers import feeds, contents, summary, translate, settings, discover, tts, daily_picks, rag, agent
 
 app = FastAPI(title="Content Aggregator API", version="1.2.0")
 
@@ -24,12 +24,19 @@ app.include_router(discover.router, prefix="/api/discover", tags=["discover"])
 app.include_router(tts.router, prefix="/api/tts", tags=["tts"])
 app.include_router(daily_picks.router, prefix="/api/daily-picks", tags=["daily_picks"])
 app.include_router(rag.router, prefix="/api/rag", tags=["rag"])
+app.include_router(agent.router, prefix="/api/agent", tags=["agent"])
 
 from app.scheduler import start_scheduler, stop_scheduler
+from app.database import init_db
+import os
 
 @app.on_event("startup")
 def on_startup():
-    start_scheduler()
+    init_db()  # 裸 uvicorn 启动也自举建表/迁移，不依赖 run.py
+    # 架构转向（2026-10-11）：调度收归本地 AI Agent，内置定时抓取默认关闭。
+    # 需要旧的自动抓取行为时，设环境变量 INFOHUB_SCHEDULER=1。
+    if os.getenv("INFOHUB_SCHEDULER", "0") == "1":
+        start_scheduler()
 
 @app.on_event("shutdown")
 def on_shutdown():

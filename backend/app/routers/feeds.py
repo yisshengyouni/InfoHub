@@ -13,6 +13,7 @@ AUTO_TAGS = {
     "podcast": ["播客", "音频"],
     "wechat_search": ["公众号", "微信"],
     "weibo_search": ["微博", "社交"],
+    "homepage": ["博主主页", "Agent抓取"],
     "douyin": ["抖音", "短视频"],
     "xiaohongshu": ["小红书", "笔记"],
 }

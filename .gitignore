@@ -62,3 +62,6 @@ frontend/dist/
 
 # Render / Railway
 .render/
+backend/app/data.db-shm
+backend/app/data.db-wal
+backend/app/data.db-journal
