@@ -1,0 +1,16 @@
+agent-profile.md
+  h_b85baef726d713 43-57
+scripts/export_to_library.py
+  h_b85baef726d713 45-57,81-82,95,109-110,114
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b031dc0f3e9fe0b4d31e5df465de37732fc64e2f",
+  "prompts": {},
+  "humans": {
+    "h_b85baef726d713": {
+      "author": "huqiang <qiang.hu@hipac.cn>"
+    }
+  }
+}
