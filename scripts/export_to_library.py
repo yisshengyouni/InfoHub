@@ -42,6 +42,19 @@ def short_title(title: str, limit: int = 15) -> str:
     s = re.sub(r"[，。！？、：；「」『』（）\[\]（）\s\"'“”·—…,.:;!?]", "", title or "")
     return s[:limit] or "未命名"
 
+def detect_source(link: str) -> str:
+    """按链接域名判来源（供 index.md 来源列与 frontmatter.source）。"""
+    from urllib.parse import urlparse
+    host = (urlparse(link or "").hostname or "").lower()
+    if host in ("weibo.com", "m.weibo.cn", "weibo.cn"):
+        return "微博"
+    if host in ("x.com", "twitter.com", "m.x.com"):
+        return "X"
+    if host == "mp.weixin.qq.com":
+        return "微信公众号"
+    return host or "RSS"  # 博客/周刊直接显示域名，一眼可辨
+
+
 def author_display(author: str) -> str:
     # 库内 author 存 handle；知名作者补注真名（误注已被主公纠正过的不再犯）
     aliases = {"tombkeeper": "tombkeeper（于旸）"}
@@ -65,7 +78,8 @@ def main() -> int:
     for r in rows:
         cat = pick_category(r["tags"], r["content"] or r["summary"] or "")
         disp = author_display(r["author"])
-        d = os.path.join(LIB, cat, f"{r['author'] or '佚名'}-{short_title(r['title'])}")
+        src = detect_source(r["link"])
+        d = os.path.join(LIB, cat, f"{disp}-{short_title(r['title'])}")
         os.makedirs(d, exist_ok=True)
         article = os.path.join(d, "article.md")
         rel = os.path.relpath(article, LIB)
@@ -78,7 +92,7 @@ def main() -> int:
         fm = (
             "---\n"
             f"title: {short_title(r['title'], 40) or r['title'][:40]}\n"
-            "source: 微博\n"
+            f"source: {src}\n"
             f"author: {disp}\n"
             f"published: {published}\n"
             f"url: {r['link']}\n"
@@ -91,12 +105,13 @@ def main() -> int:
             "\n\n---\n\n## 无咎注\n\n"
             f"- InfoHub 阅读流自动同步（value_score {r['value_score']}，{TODAY}）。\n"
             f"- 推荐理由：{r['ai_summary'] or '见正文'}\n"
-            "- 微博原文如含配图，请移步原文链接查看（图床防盗链，暂未回存）。\n"
         )
+        if src in ("微博", "微信公众号"):
+            note += "- 微博/公众号原文如含配图，请移步原文链接查看（图床防盗链，暂未回存）。\n"
         body = (r["content"] or r["summary"] or "").replace("\r\n", "\n")
         with open(article, "w", encoding="utf-8") as f:
             f.write(fm + body + note)
-        row = (f"| {TODAY} | {short_title(r['title'], 40)} | {cat} | 微博 | {disp} | {tags} | {rel} |\n")
+        row = (f"| {TODAY} | {short_title(r['title'], 40)} | {cat} | {src} | {disp} | {tags} | {rel} |\n")
         with open(INDEX, "a", encoding="utf-8") as f:
             f.write(row)
         exported.append(f"id{r['id']} → {rel}")
