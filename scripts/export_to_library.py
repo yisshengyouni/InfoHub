@@ -21,14 +21,15 @@ LIB = os.path.expanduser("/Users/zhonghaiqin/Documents/资料库")
 INDEX = os.path.join(LIB, "index.md")
 TODAY = date.today().isoformat()
 
-# 关键词 → 资料库分类（taxonomy.md 现有六类；命中越靠前越优先）
+# 关键词 → 资料库分类（taxonomy.md 现有七类；命中越靠前越优先）
+# 注意：安全组必须排在 AI 组之前（"Agent安全" 含 "Agent"，否则会被 AI 组误命中）
 CATEGORY_MAP = [
+    (("安全", "漏洞", "密码学", "区块链", "AppSec", "渗透", "微码"), "安全与区块链"),
     (("AI", "Agent", "LLM", "RAG", "MCP", "prompt", "大模型"), "AI与Agent"),
     (("交易", "电商", "履约", "库存", "跨境"), "业务与行业"),
     (("研发效能", "DevOps", "测试", "架构", "后端", "数据库"), "工程实践"),
     (("产品", "交互", "设计"), "产品与设计"),
     (("工具", "开源", "效率"), "工具与资源"),
-    # 区块链/安全类暂归其它 —— 待主公裁决是否新增分类后调整
 ]
 
 def pick_category(tags: str, text: str) -> str:
